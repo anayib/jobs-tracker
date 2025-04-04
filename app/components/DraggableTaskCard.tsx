@@ -3,26 +3,19 @@
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { TaskCard } from "./TaskCard"
+import { Assignee } from "@/types/assignee"
 
 interface DraggableTaskCardProps {
   task: {
     id: string
     title: string
     description: string
-    assignee?: {
-      id: string
-      name: string
-      image?: string
-    }
+    assignee?: Assignee
     dueDate?: Date
   }
   onClick: () => void
   onAssigneeChange: (assigneeName: string) => void
-  availableAssignees: Array<{
-    id: string
-    name: string
-    image?: string
-  }>
+  availableAssignees: Assignee[]
 }
 
 export function DraggableTaskCard({

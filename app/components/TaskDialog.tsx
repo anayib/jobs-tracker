@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useTranslations } from 'next-intl'
+import { Assignee } from "@/types/assignee"
 
 const taskFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -45,18 +46,10 @@ interface TaskDialogProps {
     id: string
     title: string
     description: string
-    assignee?: {
-      id: string
-      name: string
-      image?: string
-    }
+    assignee?: Assignee
     dueDate?: Date
   }
-  availableAssignees: Array<{
-    id: string
-    name: string
-    image?: string
-  }>
+  availableAssignees: Assignee[]
   onSubmit: (values: TaskFormValues) => void
   onDelete?: () => void
   mode: 'create' | 'edit'

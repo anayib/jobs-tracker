@@ -6,21 +6,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { Assignee } from "@/types/assignee"
 
 interface TaskCardProps {
   title: string
   description: string
-  assignee?: {
-    name: string
-    image?: string
-  }
+  assignee?: Assignee
   dueDate?: Date
   onAssigneeChange: (value: string) => void
-  availableAssignees: Array<{
-    id: string
-    name: string
-    image?: string
-  }>
+  availableAssignees: Assignee[]
   className?: string
 }
 

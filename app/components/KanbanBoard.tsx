@@ -26,17 +26,15 @@ import {
 } from "@dnd-kit/sortable"
 import { DroppableColumn } from "./DroppableColumn"
 import { DraggableTaskCard } from "./DraggableTaskCard"
+import assigneesData from "@/data/assignees.json"
+import { Assignee } from "@/types/assignee"
 
 interface Task {
   id: string
   title: string
   description: string
   status: 'opportunities' | 'applied' | 'interviewing' | 'closed'
-  assignee?: {
-    id: string
-    name: string
-    image?: string
-  }
+  assignee?: Assignee
   dueDate?: Date
 }
 
@@ -50,28 +48,7 @@ export function KanbanBoard() {
     { id: 'closed', title: t('kanban.columns.closed') }
   ]
 
-  const availableAssignees = [
-    {
-      id: '1',
-      name: 'Alex',
-      image: 'https://github.com/shadcn.png'
-    },
-    {
-      id: '2',
-      name: 'Sarah',
-      image: 'https://github.com/sarah.png'
-    },
-    {
-      id: '3',
-      name: 'Mike',
-      image: 'https://github.com/mike.png'
-    },
-    {
-      id: '4',
-      name: 'Emma',
-      image: 'https://github.com/emma.png'
-    }
-  ]
+  const availableAssignees = assigneesData.assignees
 
   const initialTasks: Task[] = [
     {
