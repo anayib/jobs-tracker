@@ -5,6 +5,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
+import { cn } from "@/lib/utils"
 
 interface TaskCardProps {
   title: string
@@ -20,6 +21,7 @@ interface TaskCardProps {
     name: string
     image?: string
   }>
+  className?: string
 }
 
 export function TaskCard({ 
@@ -28,10 +30,11 @@ export function TaskCard({
   assignee, 
   dueDate,
   onAssigneeChange,
-  availableAssignees
+  availableAssignees,
+  className
 }: TaskCardProps) {
   return (
-    <Card className="w-full shadow-sm hover:shadow-md transition-shadow">
+    <Card className={cn("w-full shadow-sm hover:shadow-md transition-shadow", className)}>
       <CardHeader className="pb-2">
         <CardTitle className="text-base">{title}</CardTitle>
         <CardDescription className="line-clamp-2">{description}</CardDescription>

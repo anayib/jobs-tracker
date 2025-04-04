@@ -8,6 +8,19 @@ import { PlusIcon } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import { LanguageSelector } from "./LanguageSelector"
 import { ThemeToggle } from "../../components/theme-toggle"
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core"
+import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable"
+import { DroppableColumn } from "./DroppableColumn"
+import { DraggableTaskCard } from "./DraggableTaskCard"
 
 interface Task {
   id: string
@@ -85,6 +98,21 @@ export function KanbanBoard() {
   const [tasks, setTasks] = useState<Task[]>(initialTasks)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | undefined>()
+  const [activeId, setActiveId] = useState<string | null>(null)
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    })
+  )
 
   const handleCreateTask = (values: any) => {
     const newTask: Task = {
@@ -135,6 +163,33 @@ export function KanbanBoard() {
     setDialogOpen(true)
   }
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+    
+    if (!over) return
+
+    const activeTask = tasks.find(t => t.id === active.id)
+    const overColumn = columns.find(c => c.id === over.id)
+
+    if (activeTask && overColumn) {
+      setTasks(currentTasks =>
+        currentTasks.map(task =>
+          task.id === activeTask.id
+            ? { ...task, status: overColumn.id as Task['status'] }
+            : task
+        )
+      )
+    }
+
+    setActiveId(null)
+  }
+
+  const activeTask = activeId ? tasks.find(task => task.id === activeId) : null
+
   return (
     <div className="h-full w-full p-4">
       <div className="flex justify-between items-center mb-4">
@@ -148,38 +203,58 @@ export function KanbanBoard() {
           </Button>
         </div>
       </div>
-      <div className="flex gap-4 h-full">
-        {columns.map((column) => (
-          <div key={column.id} className="flex-1 min-w-[250px]">
-            <div className="bg-muted mb-3 p-3 rounded-lg">
-              <h3 className="font-semibold">{column.title}</h3>
-            </div>
-            <div className="flex flex-col gap-2">
-              {tasks
-                .filter((task) => task.status === column.id)
-                .map((task) => (
-                  <div key={task.id} onClick={() => openEditDialog(task)} className="cursor-pointer">
-                    <TaskCard
-                      title={task.title}
-                      description={task.description}
-                      assignee={task.assignee}
-                      dueDate={task.dueDate}
-                      onAssigneeChange={(assigneeName) => {
-                        const assignee = availableAssignees.find(a => a.name === assigneeName)
-                        setTasks(currentTasks =>
-                          currentTasks.map(t =>
-                            t.id === task.id ? { ...t, assignee } : t
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-4 h-full">
+          {columns.map((column) => (
+            <DroppableColumn
+              key={column.id}
+              id={column.id}
+              title={column.title}
+              className="flex-1 min-w-[250px]"
+            >
+              <SortableContext items={tasks.filter(task => task.status === column.id).map(t => t.id)} strategy={rectSortingStrategy}>
+                <div className="flex flex-col gap-2">
+                  {tasks
+                    .filter((task) => task.status === column.id)
+                    .map((task) => (
+                      <DraggableTaskCard
+                        key={task.id}
+                        task={task}
+                        onClick={() => openEditDialog(task)}
+                        onAssigneeChange={(assigneeName) => {
+                          const assignee = availableAssignees.find(a => a.name === assigneeName)
+                          setTasks(currentTasks =>
+                            currentTasks.map(t =>
+                              t.id === task.id ? { ...t, assignee } : t
+                            )
                           )
-                        )
-                      }}
-                      availableAssignees={availableAssignees}
-                    />
-                  </div>
-                ))}
-            </div>
-          </div>
-        ))}
-      </div>
+                        }}
+                        availableAssignees={availableAssignees}
+                      />
+                    ))}
+                </div>
+              </SortableContext>
+            </DroppableColumn>
+          ))}
+        </div>
+        <DragOverlay>
+          {activeTask && (
+            <TaskCard
+              title={activeTask.title}
+              description={activeTask.description}
+              assignee={activeTask.assignee}
+              dueDate={activeTask.dueDate}
+              onAssigneeChange={() => {}}
+              availableAssignees={availableAssignees}
+              className="rotate-3 cursor-grabbing"
+            />
+          )}
+        </DragOverlay>
+      </DndContext>
       <TaskDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
