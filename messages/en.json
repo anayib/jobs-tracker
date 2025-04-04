@@ -1,0 +1,59 @@
+{
+  "kanban": {
+    "title": "Job Applications",
+    "addJob": "Add Job",
+    "columns": {
+      "opportunities": "Opportunities",
+      "applied": "Applied",
+      "interviewing": "Interviewing",
+      "closed": "Closed"
+    }
+  },
+  "tasks": {
+    "senior": {
+      "title": "Senior Frontend Developer",
+      "description": "Tech startup looking for experienced React developer"
+    },
+    "fullstack": {
+      "title": "Full Stack Engineer",
+      "description": "Applied through company website, waiting for response"
+    },
+    "architect": {
+      "title": "Software Architect",
+      "description": "Second round of technical interviews scheduled"
+    }
+  },
+  "taskDialog": {
+    "create": {
+      "title": "Create Job",
+      "description": "Add a new job to your board."
+    },
+    "edit": {
+      "title": "Edit Job",
+      "description": "Make changes to your job here."
+    },
+    "form": {
+      "title": {
+        "label": "Title",
+        "placeholder": "Job title"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Job description"
+      },
+      "assignee": {
+        "label": "Assignee",
+        "placeholder": "Select assignee"
+      },
+      "dueDate": {
+        "label": "Due Date",
+        "placeholder": "Pick a date"
+      }
+    },
+    "actions": {
+      "delete": "Delete Job",
+      "create": "Create Job",
+      "save": "Save Changes"
+    }
+  }
+} 

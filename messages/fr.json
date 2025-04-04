@@ -1,0 +1,59 @@
+{
+  "kanban": {
+    "title": "Candidatures",
+    "addJob": "Ajouter un Emploi",
+    "columns": {
+      "opportunities": "Opportunités",
+      "applied": "Postulées",
+      "interviewing": "Entretiens",
+      "closed": "Clôturées"
+    }
+  },
+  "tasks": {
+    "senior": {
+      "title": "Développeur Frontend Senior",
+      "description": "Startup technologique recherche développeur React expérimenté"
+    },
+    "fullstack": {
+      "title": "Ingénieur Full Stack",
+      "description": "Candidature soumise via le site web de l'entreprise, en attente de réponse"
+    },
+    "architect": {
+      "title": "Architecte Logiciel",
+      "description": "Deuxième tour d'entretiens techniques programmé"
+    }
+  },
+  "taskDialog": {
+    "create": {
+      "title": "Créer un Emploi",
+      "description": "Ajouter un nouvel emploi à votre tableau."
+    },
+    "edit": {
+      "title": "Modifier l'Emploi",
+      "description": "Apporter des modifications à votre emploi ici."
+    },
+    "form": {
+      "title": {
+        "label": "Titre",
+        "placeholder": "Titre de l'emploi"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Description de l'emploi"
+      },
+      "assignee": {
+        "label": "Assigné à",
+        "placeholder": "Sélectionner une personne"
+      },
+      "dueDate": {
+        "label": "Date limite",
+        "placeholder": "Choisir une date"
+      }
+    },
+    "actions": {
+      "delete": "Supprimer l'Emploi",
+      "create": "Créer l'Emploi",
+      "save": "Enregistrer"
+    }
+  }
+} 

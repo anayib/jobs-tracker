@@ -1,0 +1,59 @@
+{
+  "kanban": {
+    "title": "Solicitudes de Empleo",
+    "addJob": "Agregar Empleo",
+    "columns": {
+      "opportunities": "Oportunidades",
+      "applied": "Aplicadas",
+      "interviewing": "Entrevistando",
+      "closed": "Cerradas"
+    }
+  },
+  "tasks": {
+    "senior": {
+      "title": "Desarrollador Frontend Senior",
+      "description": "Startup tecnológica busca desarrollador React con experiencia"
+    },
+    "fullstack": {
+      "title": "Ingeniero Full Stack",
+      "description": "Aplicación enviada a través del sitio web de la empresa, esperando respuesta"
+    },
+    "architect": {
+      "title": "Arquitecto de Software",
+      "description": "Segunda ronda de entrevistas técnicas programada"
+    }
+  },
+  "taskDialog": {
+    "create": {
+      "title": "Crear Empleo",
+      "description": "Agregar un nuevo empleo a tu tablero."
+    },
+    "edit": {
+      "title": "Editar Empleo",
+      "description": "Realiza cambios en tu empleo aquí."
+    },
+    "form": {
+      "title": {
+        "label": "Título",
+        "placeholder": "Título del empleo"
+      },
+      "description": {
+        "label": "Descripción",
+        "placeholder": "Descripción del empleo"
+      },
+      "assignee": {
+        "label": "Asignado a",
+        "placeholder": "Seleccionar asignado"
+      },
+      "dueDate": {
+        "label": "Fecha límite",
+        "placeholder": "Seleccionar fecha"
+      }
+    },
+    "actions": {
+      "delete": "Eliminar Empleo",
+      "create": "Crear Empleo",
+      "save": "Guardar Cambios"
+    }
+  }
+} 
