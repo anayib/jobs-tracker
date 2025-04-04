@@ -17,8 +17,13 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
+  closestCenter,
 } from "@dnd-kit/core"
-import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable"
+import { 
+  SortableContext, 
+  rectSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable"
 import { DroppableColumn } from "./DroppableColumn"
 import { DraggableTaskCard } from "./DraggableTaskCard"
 
@@ -173,9 +178,33 @@ export function KanbanBoard() {
     if (!over) return
 
     const activeTask = tasks.find(t => t.id === active.id)
+    if (!activeTask) return
+
+    const overTask = tasks.find(t => t.id === over.id)
     const overColumn = columns.find(c => c.id === over.id)
 
-    if (activeTask && overColumn) {
+    // If dropping over another task
+    if (overTask) {
+      const activeIndex = tasks.findIndex(t => t.id === active.id)
+      const overIndex = tasks.findIndex(t => t.id === over.id)
+
+      if (activeTask.status === overTask.status) {
+        // Same column reorder
+        setTasks(tasks => arrayMove(tasks, activeIndex, overIndex))
+      } else {
+        // Different column reorder
+        setTasks(tasks => {
+          const newTasks = arrayMove(tasks, activeIndex, overIndex)
+          return newTasks.map(task => 
+            task.id === activeTask.id 
+              ? { ...task, status: overTask.status }
+              : task
+          )
+        })
+      }
+    }
+    // If dropping over a column
+    else if (overColumn) {
       setTasks(currentTasks =>
         currentTasks.map(task =>
           task.id === activeTask.id
@@ -191,8 +220,8 @@ export function KanbanBoard() {
   const activeTask = activeId ? tasks.find(task => task.id === activeId) : null
 
   return (
-    <div className="h-full w-full p-4">
-      <div className="flex justify-between items-center mb-4">
+    <div className="h-screen overflow-hidden">
+      <div className="flex justify-between items-center p-4">
         <h2 className="text-2xl font-bold">{t('kanban.title')}</h2>
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -205,22 +234,23 @@ export function KanbanBoard() {
       </div>
       <DndContext
         sensors={sensors}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 h-full">
-          {columns.map((column) => (
-            <DroppableColumn
-              key={column.id}
-              id={column.id}
-              title={column.title}
-              className="flex-1 min-w-[250px]"
-            >
-              <SortableContext items={tasks.filter(task => task.status === column.id).map(t => t.id)} strategy={rectSortingStrategy}>
-                <div className="flex flex-col gap-2">
-                  {tasks
-                    .filter((task) => task.status === column.id)
-                    .map((task) => (
+        <div className="flex gap-4 p-4 h-[calc(100vh-5rem)]">
+          {columns.map((column) => {
+            const columnTasks = tasks.filter(task => task.status === column.id)
+            return (
+              <DroppableColumn
+                key={column.id}
+                id={column.id}
+                title={column.title}
+                className="flex-1 min-w-[300px]"
+              >
+                <SortableContext items={columnTasks.map(t => t.id)} strategy={rectSortingStrategy}>
+                  <div className="flex flex-col gap-2">
+                    {columnTasks.map((task) => (
                       <DraggableTaskCard
                         key={task.id}
                         task={task}
@@ -236,10 +266,11 @@ export function KanbanBoard() {
                         availableAssignees={availableAssignees}
                       />
                     ))}
-                </div>
-              </SortableContext>
-            </DroppableColumn>
-          ))}
+                  </div>
+                </SortableContext>
+              </DroppableColumn>
+            )
+          })}
         </div>
         <DragOverlay>
           {activeTask && (
