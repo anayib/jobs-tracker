@@ -27,6 +27,7 @@ import { CalendarIcon, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useTranslations } from 'next-intl'
 
 const taskFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -70,6 +71,8 @@ export function TaskDialog({
   onDelete,
   mode
 }: TaskDialogProps) {
+  const t = useTranslations('taskDialog')
+
   const form = useForm<TaskFormValues>({
     resolver: zodResolver(taskFormSchema),
     defaultValues: {
@@ -86,11 +89,11 @@ export function TaskDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{mode === 'create' ? 'Create Task' : 'Edit Task'}</DialogTitle>
+          <DialogTitle>
+            {mode === 'create' ? t('create.title') : t('edit.title')}
+          </DialogTitle>
           <DialogDescription>
-            {mode === 'create' 
-              ? 'Add a new task to your board.' 
-              : 'Make changes to your task here.'}
+            {mode === 'create' ? t('create.description') : t('edit.description')}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -100,9 +103,9 @@ export function TaskDialog({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>{t('form.title.label')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Task title" {...field} />
+                    <Input placeholder={t('form.title.placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -113,9 +116,9 @@ export function TaskDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('form.description.label')}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Task description" {...field} />
+                    <Input placeholder={t('form.description.placeholder')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -126,14 +129,14 @@ export function TaskDialog({
               name="assigneeId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assignee</FormLabel>
+                  <FormLabel>{t('form.assignee.label')}</FormLabel>
                   <Select 
                     onValueChange={field.onChange} 
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select assignee" />
+                        <SelectValue placeholder={t('form.assignee.placeholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -153,7 +156,7 @@ export function TaskDialog({
               name="dueDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Due Date</FormLabel>
+                  <FormLabel>{t('form.dueDate.label')}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -167,7 +170,7 @@ export function TaskDialog({
                           {field.value ? (
                             format(field.value, "PPP")
                           ) : (
-                            <span>Pick a date</span>
+                            <span>{t('form.dueDate.placeholder')}</span>
                           )}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -196,12 +199,12 @@ export function TaskDialog({
                   variant="destructive"
                   onClick={onDelete}
                 >
-                  Delete Task
+                  {t('actions.delete')}
                 </Button>
               )}
               <Button type="submit" disabled={isLoading}>
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {mode === 'create' ? 'Create Task' : 'Save Changes'}
+                {mode === 'create' ? t('actions.create') : t('actions.save')}
               </Button>
             </DialogFooter>
           </form>

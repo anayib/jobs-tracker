@@ -5,12 +5,15 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { TaskDialog } from "./TaskDialog"
 import { PlusIcon } from "lucide-react"
+import { useTranslations } from 'next-intl'
+import { LanguageSelector } from "./LanguageSelector"
+import { ThemeToggle } from "../../components/theme-toggle"
 
 interface Task {
   id: string
   title: string
   description: string
-  status: 'todo' | 'in-progress' | 'done'
+  status: 'opportunities' | 'applied' | 'interviewing' | 'closed'
   assignee?: {
     id: string
     name: string
@@ -20,10 +23,13 @@ interface Task {
 }
 
 export function KanbanBoard() {
+  const t = useTranslations()
+  
   const columns = [
-    { id: 'todo', title: 'Todo' },
-    { id: 'in-progress', title: 'In Progress' },
-    { id: 'done', title: 'Done' }
+    { id: 'opportunities', title: t('kanban.columns.opportunities') },
+    { id: 'applied', title: t('kanban.columns.applied') },
+    { id: 'interviewing', title: t('kanban.columns.interviewing') },
+    { id: 'closed', title: t('kanban.columns.closed') }
   ]
 
   const availableAssignees = [
@@ -52,25 +58,25 @@ export function KanbanBoard() {
   const initialTasks: Task[] = [
     {
       id: '1',
-      title: 'Design System',
-      description: 'Create a consistent design system for the app',
-      status: 'todo',
+      title: t('tasks.senior.title'),
+      description: t('tasks.senior.description'),
+      status: 'opportunities',
       assignee: availableAssignees[0],
       dueDate: new Date('2024-04-01')
     },
     {
       id: '2',
-      title: 'User Authentication',
-      description: 'Implement user authentication flow',
-      status: 'in-progress',
+      title: t('tasks.fullstack.title'),
+      description: t('tasks.fullstack.description'),
+      status: 'applied',
       assignee: availableAssignees[1],
       dueDate: new Date('2024-03-28')
     },
     {
       id: '3',
-      title: 'Landing Page',
-      description: 'Complete the landing page design',
-      status: 'done',
+      title: t('tasks.architect.title'),
+      description: t('tasks.architect.description'),
+      status: 'interviewing',
       assignee: availableAssignees[2],
       dueDate: new Date('2024-03-25')
     }
@@ -85,7 +91,7 @@ export function KanbanBoard() {
       id: Math.random().toString(36).substr(2, 9),
       title: values.title,
       description: values.description,
-      status: 'todo',
+      status: 'opportunities',
       assignee: values.assigneeId ? availableAssignees.find(a => a.id === values.assigneeId) : undefined,
       dueDate: values.dueDate
     }
@@ -132,11 +138,15 @@ export function KanbanBoard() {
   return (
     <div className="h-full w-full p-4">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Tasks</h2>
-        <Button onClick={openCreateDialog}>
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Add Task
-        </Button>
+        <h2 className="text-2xl font-bold">{t('kanban.title')}</h2>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <LanguageSelector />
+          <Button onClick={openCreateDialog}>
+            <PlusIcon className="h-4 w-4 mr-2" />
+            {t('kanban.addJob')}
+          </Button>
+        </div>
       </div>
       <div className="flex gap-4 h-full">
         {columns.map((column) => (
