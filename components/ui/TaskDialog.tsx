@@ -29,6 +29,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useTranslations } from 'next-intl'
 import { Assignee } from "@/types/assignee"
+import { useEffect } from "react"
 
 const taskFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -72,9 +73,21 @@ export function TaskDialog({
       title: task?.title || "",
       description: task?.description || "",
       assigneeId: task?.assignee?.id,
-      dueDate: task?.dueDate,
+      dueDate: task?.dueDate ? new Date(task.dueDate) : undefined,
     },
   })
+
+  // Reset form when task changes
+  useEffect(() => {
+    if (task) {
+      form.reset({
+        title: task.title,
+        description: task.description || "",
+        assigneeId: task.assignee?.id,
+        dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+      })
+    }
+  }, [task, form])
 
   const isLoading = form.formState.isSubmitting
 
