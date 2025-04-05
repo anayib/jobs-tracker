@@ -1,13 +1,11 @@
 'use client'
 
 import { TaskCard } from "./ui/TaskCard"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { TaskDialog } from "./ui/TaskDialog"
 import { PlusIcon } from "lucide-react"
 import { useTranslations } from 'next-intl'
-import { LanguageSelector } from "./ui/LanguageSelector"
-import { ThemeToggle } from "./theme-toggle"
 import {
   DndContext,
   DragEndEvent,
@@ -25,15 +23,25 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable"
 import { DroppableColumn } from "./ui/DroppableColumn"
-import { DraggableTaskCard } from "./ui/DraggableTaskCard"
 import assigneesData from "@/data/assignees.json"
 import { Assignee } from "@/types/assignee"
+import { getColumns, createTask, updateTask, deleteTask, moveTask } from "@/app/actions/kanban"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+
+// Define types based on our database schema
+interface Column {
+  id: string
+  title: string
+  order: number
+  tasks: Task[]
+}
 
 interface Task {
   id: string
   title: string
-  description: string
-  status: 'opportunities' | 'applied' | 'interviewing' | 'closed'
+  description: string | null
+  columnId: string
+  order: number
   assignee?: Assignee
   dueDate?: Date
 }
@@ -41,46 +49,34 @@ interface Task {
 export function KanbanBoard() {
   const t = useTranslations()
   
-  const columns = [
-    { id: 'opportunities', title: t('kanban.columns.opportunities') },
-    { id: 'applied', title: t('kanban.columns.applied') },
-    { id: 'interviewing', title: t('kanban.columns.interviewing') },
-    { id: 'closed', title: t('kanban.columns.closed') }
-  ]
-
-  const availableAssignees = assigneesData.assignees
-
-  const initialTasks: Task[] = [
-    {
-      id: '1',
-      title: t('tasks.senior.title'),
-      description: t('tasks.senior.description'),
-      status: 'opportunities',
-      assignee: availableAssignees[0],
-      dueDate: new Date('2024-04-01')
-    },
-    {
-      id: '2',
-      title: t('tasks.fullstack.title'),
-      description: t('tasks.fullstack.description'),
-      status: 'applied',
-      assignee: availableAssignees[1],
-      dueDate: new Date('2024-03-28')
-    },
-    {
-      id: '3',
-      title: t('tasks.architect.title'),
-      description: t('tasks.architect.description'),
-      status: 'interviewing',
-      assignee: availableAssignees[2],
-      dueDate: new Date('2024-03-25')
-    }
-  ]
-
-  const [tasks, setTasks] = useState<Task[]>(initialTasks)
+  const [columns, setColumns] = useState<Column[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState<Task | undefined>()
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const availableAssignees = assigneesData.assignees
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const columnsData = await getColumns()
+        setColumns(columnsData)
+        
+        // Flatten tasks from all columns
+        const allTasks = columnsData.flatMap(col => col.tasks)
+        setTasks(allTasks)
+        
+        setLoading(false)
+      } catch (error) {
+        console.error("Failed to fetch data:", error)
+        setLoading(false)
+      }
+    }
+    
+    fetchData()
+  }, [])
 
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -96,43 +92,93 @@ export function KanbanBoard() {
     })
   )
 
-  const handleCreateTask = (values: any) => {
-    const newTask: Task = {
-      id: Math.random().toString(36).substr(2, 9),
-      title: values.title,
-      description: values.description,
-      status: 'opportunities',
-      assignee: values.assigneeId ? availableAssignees.find(a => a.id === values.assigneeId) : undefined,
-      dueDate: values.dueDate
+  const handleCreateTask = async (values: any) => {
+    try {
+      // Find the first column to add the task to
+      const firstColumn = columns[0]
+      if (!firstColumn) return
+      
+      // Get the highest order in this column
+      const maxOrder = tasks
+        .filter(t => t.columnId === firstColumn.id)
+        .reduce((max, task) => Math.max(max, task.order), -1)
+      
+      const newTaskData = {
+        title: values.title,
+        description: values.description || '',
+        columnId: firstColumn.id,
+        order: maxOrder + 1,
+        assigneeId: values.assigneeId,
+        dueDate: values.dueDate
+      }
+      
+      const result = await createTask(newTaskData)
+      
+      // Optimistically update the UI
+      if (result && result[0]) {
+        const newTask = {
+          ...result[0],
+          assignee: values.assigneeId ? availableAssignees.find(a => a.id === values.assigneeId) : undefined
+        }
+        
+        setTasks(prev => [...prev, newTask])
+      }
+      
+      setDialogOpen(false)
+    } catch (error) {
+      console.error("Failed to create task:", error)
     }
-    setTasks([...tasks, newTask])
-    setDialogOpen(false)
   }
 
-  const handleEditTask = (values: any) => {
+  const handleEditTask = async (values: any) => {
     if (!selectedTask) return
-    setTasks(currentTasks =>
-      currentTasks.map(task =>
-        task.id === selectedTask.id
-          ? {
-              ...task,
-              title: values.title,
-              description: values.description,
-              assignee: values.assigneeId ? availableAssignees.find(a => a.id === values.assigneeId) : undefined,
-              dueDate: values.dueDate
-            }
-          : task
+    
+    try {
+      const updatedData = {
+        title: values.title,
+        description: values.description || '',
+        assigneeId: values.assigneeId,
+        dueDate: values.dueDate
+      }
+      
+      await updateTask(selectedTask.id, updatedData)
+      
+      // Optimistically update the UI
+      setTasks(currentTasks =>
+        currentTasks.map(task =>
+          task.id === selectedTask.id
+            ? {
+                ...task,
+                title: values.title,
+                description: values.description || '',
+                assignee: values.assigneeId ? availableAssignees.find(a => a.id === values.assigneeId) : undefined,
+                dueDate: values.dueDate
+              }
+            : task
+        )
       )
-    )
-    setDialogOpen(false)
-    setSelectedTask(undefined)
+      
+      setDialogOpen(false)
+      setSelectedTask(undefined)
+    } catch (error) {
+      console.error("Failed to update task:", error)
+    }
   }
 
-  const handleDeleteTask = () => {
+  const handleDeleteTask = async () => {
     if (!selectedTask) return
-    setTasks(currentTasks => currentTasks.filter(task => task.id !== selectedTask.id))
-    setDialogOpen(false)
-    setSelectedTask(undefined)
+    
+    try {
+      await deleteTask(selectedTask.id)
+      
+      // Optimistically update the UI
+      setTasks(currentTasks => currentTasks.filter(task => task.id !== selectedTask.id))
+      
+      setDialogOpen(false)
+      setSelectedTask(undefined)
+    } catch (error) {
+      console.error("Failed to delete task:", error)
+    }
   }
 
   const openCreateDialog = () => {
@@ -149,7 +195,7 @@ export function KanbanBoard() {
     setActiveId(event.active.id as string)
   }
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     
     if (!over) return
@@ -160,38 +206,64 @@ export function KanbanBoard() {
     const overTask = tasks.find(t => t.id === over.id)
     const overColumn = columns.find(c => c.id === over.id)
 
-    if (overTask) {
-      const activeIndex = tasks.findIndex(t => t.id === active.id)
-      const overIndex = tasks.findIndex(t => t.id === over.id)
+    try {
+      if (overTask) {
+        const activeIndex = tasks.findIndex(t => t.id === active.id)
+        const overIndex = tasks.findIndex(t => t.id === over.id)
 
-      // If dropping on a task in a different column
-      if (activeTask.status !== overTask.status) {
-        setTasks(tasks => {
-          const newTasks = [...tasks]
-          const [movedTask] = newTasks.splice(activeIndex, 1)
-          movedTask.status = overTask.status
-          newTasks.splice(overIndex, 0, movedTask)
-          return newTasks
-        })
-      } else {
-        // Same column reorder
-        setTasks(tasks => arrayMove(tasks, activeIndex, overIndex))
-      }
-    } else if (overColumn) {
-      // Dropping directly on a column
-      setTasks(currentTasks =>
-        currentTasks.map(task =>
-          task.id === activeTask.id
-            ? { ...task, status: overColumn.id as Task['status'] }
-            : task
+        // If dropping on a task in a different column
+        if (activeTask.columnId !== overTask.columnId) {
+          // Optimistically update UI
+          setTasks(tasks => {
+            const newTasks = [...tasks]
+            const [movedTask] = newTasks.splice(activeIndex, 1)
+            movedTask.columnId = overTask.columnId
+            newTasks.splice(overIndex, 0, movedTask)
+            return newTasks
+          })
+          
+          // Update in database
+          await moveTask(activeTask.id, overTask.columnId, overTask.order)
+        } else {
+          // Same column reorder - optimistically update UI
+          setTasks(tasks => arrayMove(tasks, activeIndex, overIndex))
+          
+          // Update in database
+          await moveTask(activeTask.id, activeTask.columnId, overTask.order)
+        }
+      } else if (overColumn) {
+        // Dropping directly on a column
+        // Get the highest order in this column
+        const tasksInColumn = tasks.filter(t => t.columnId === overColumn.id)
+        const maxOrder = tasksInColumn.length > 0
+          ? Math.max(...tasksInColumn.map(t => t.order))
+          : -1
+        
+        // Optimistically update UI
+        setTasks(currentTasks =>
+          currentTasks.map(task =>
+            task.id === activeTask.id
+              ? { ...task, columnId: overColumn.id }
+              : task
+          )
         )
-      )
+        
+        // Update in database
+        await moveTask(activeTask.id, overColumn.id, maxOrder + 1)
+      }
+    } catch (error) {
+      console.error("Failed to move task:", error)
+      // Could add logic to revert the optimistic update here
     }
 
     setActiveId(null)
   }
 
   const activeTask = activeId ? tasks.find(task => task.id === activeId) : null
+
+  if (loading) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>
+  }
 
   return (
     <div className="h-screen overflow-hidden">
@@ -211,7 +283,7 @@ export function KanbanBoard() {
       >
         <div className="flex gap-4 p-4 h-[calc(100vh-5rem)]">
           {columns.map((column) => {
-            const columnTasks = tasks.filter(task => task.status === column.id)
+            const columnTasks = tasks.filter(task => task.columnId === column.id)
             return (
               <DroppableColumn
                 key={column.id}
@@ -224,7 +296,11 @@ export function KanbanBoard() {
                     {columnTasks.map((task) => (
                       <TaskCard 
                         key={task.id}
-                        task={task}
+                        task={{
+                          ...task,
+                          description: task.description || '',
+                          status: column.id as any
+                        }}
                         isDroppable={true}
                         onClick={() => openEditDialog(task)}
                         onAssigneeChange={(assigneeName) => {
@@ -247,7 +323,11 @@ export function KanbanBoard() {
         <DragOverlay>
           {activeTask && (
             <TaskCard
-              task={activeTask}
+              task={{
+                ...activeTask,
+                description: activeTask.description || '',
+                status: columns.find(c => c.id === activeTask.columnId)?.id as any
+              }}
               availableAssignees={availableAssignees}
               className="rotate-3"
             />
@@ -257,12 +337,19 @@ export function KanbanBoard() {
       <TaskDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        task={selectedTask}
+        task={selectedTask ? {
+          ...selectedTask,
+          description: selectedTask.description || ''
+        } : undefined}
         availableAssignees={availableAssignees}
         onSubmit={selectedTask ? handleEditTask : handleCreateTask}
         onDelete={selectedTask ? handleDeleteTask : undefined}
         mode={selectedTask ? 'edit' : 'create'}
       />
+      <Popover>
+        <PopoverTrigger>Edit Task</PopoverTrigger>
+        <PopoverContent task={selectedTask} />
+      </Popover>
     </div>
   )
 } 

@@ -2,8 +2,13 @@
 
 import * as React from "react"
 import * as PopoverPrimitive from "@radix-ui/react-popover"
+import { Task } from "@/types/task"
 
 import { cn } from "@/lib/utils"
+
+interface PopoverContentProps extends React.ComponentProps<typeof PopoverPrimitive.Content> {
+  task?: Task;
+}
 
 function Popover({
   ...props
@@ -21,8 +26,9 @@ function PopoverContent({
   className,
   align = "center",
   sideOffset = 4,
+  task,
   ...props
-}: React.ComponentProps<typeof PopoverPrimitive.Content>) {
+}: PopoverContentProps) {
   return (
     <PopoverPrimitive.Portal>
       <PopoverPrimitive.Content
