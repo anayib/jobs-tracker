@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { GlobeIcon } from "lucide-react"
-import { useLanguage } from "../providers/language-provider"
+import { useLanguage } from "../../app/providers/language-provider"
 
 const languages = [
   { code: 'en', name: 'English' },

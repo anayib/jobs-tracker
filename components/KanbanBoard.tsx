@@ -1,13 +1,13 @@
 'use client'
 
-import { TaskCard } from "./TaskCard"
+import { TaskCard } from "./ui/TaskCard"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { TaskDialog } from "./TaskDialog"
+import { TaskDialog } from "./ui/TaskDialog"
 import { PlusIcon } from "lucide-react"
 import { useTranslations } from 'next-intl'
-import { LanguageSelector } from "./LanguageSelector"
-import { ThemeToggle } from "../../components/theme-toggle"
+import { LanguageSelector } from "./ui/LanguageSelector"
+import { ThemeToggle } from "./theme-toggle"
 import {
   DndContext,
   DragEndEvent,
@@ -24,8 +24,8 @@ import {
   rectSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable"
-import { DroppableColumn } from "./DroppableColumn"
-import { DraggableTaskCard } from "./DraggableTaskCard"
+import { DroppableColumn } from "./ui/DroppableColumn"
+import { DraggableTaskCard } from "./ui/DraggableTaskCard"
 import assigneesData from "@/data/assignees.json"
 import { Assignee } from "@/types/assignee"
 
@@ -160,28 +160,25 @@ export function KanbanBoard() {
     const overTask = tasks.find(t => t.id === over.id)
     const overColumn = columns.find(c => c.id === over.id)
 
-    // If dropping over another task
     if (overTask) {
       const activeIndex = tasks.findIndex(t => t.id === active.id)
       const overIndex = tasks.findIndex(t => t.id === over.id)
 
-      if (activeTask.status === overTask.status) {
+      // If dropping on a task in a different column
+      if (activeTask.status !== overTask.status) {
+        setTasks(tasks => {
+          const newTasks = [...tasks]
+          const [movedTask] = newTasks.splice(activeIndex, 1)
+          movedTask.status = overTask.status
+          newTasks.splice(overIndex, 0, movedTask)
+          return newTasks
+        })
+      } else {
         // Same column reorder
         setTasks(tasks => arrayMove(tasks, activeIndex, overIndex))
-      } else {
-        // Different column reorder
-        setTasks(tasks => {
-          const newTasks = arrayMove(tasks, activeIndex, overIndex)
-          return newTasks.map(task => 
-            task.id === activeTask.id 
-              ? { ...task, status: overTask.status }
-              : task
-          )
-        })
       }
-    }
-    // If dropping over a column
-    else if (overColumn) {
+    } else if (overColumn) {
+      // Dropping directly on a column
       setTasks(currentTasks =>
         currentTasks.map(task =>
           task.id === activeTask.id
@@ -198,11 +195,8 @@ export function KanbanBoard() {
 
   return (
     <div className="h-screen overflow-hidden">
-      <div className="flex justify-between items-center p-4">
-        <h2 className="text-2xl font-bold">{t('kanban.title')}</h2>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <LanguageSelector />
+      <div className="p-4">
+        <div className="flex justify-end">
           <Button onClick={openCreateDialog}>
             <PlusIcon className="h-4 w-4 mr-2" />
             {t('kanban.addJob')}
@@ -228,9 +222,10 @@ export function KanbanBoard() {
                 <SortableContext items={columnTasks.map(t => t.id)} strategy={rectSortingStrategy}>
                   <div className="flex flex-col gap-2">
                     {columnTasks.map((task) => (
-                      <DraggableTaskCard
+                      <TaskCard 
                         key={task.id}
                         task={task}
+                        isDroppable={true}
                         onClick={() => openEditDialog(task)}
                         onAssigneeChange={(assigneeName) => {
                           const assignee = availableAssignees.find(a => a.name === assigneeName)
@@ -252,13 +247,9 @@ export function KanbanBoard() {
         <DragOverlay>
           {activeTask && (
             <TaskCard
-              title={activeTask.title}
-              description={activeTask.description}
-              assignee={activeTask.assignee}
-              dueDate={activeTask.dueDate}
-              onAssigneeChange={() => {}}
+              task={activeTask}
               availableAssignees={availableAssignees}
-              className="rotate-3 cursor-grabbing"
+              className="rotate-3"
             />
           )}
         </DragOverlay>

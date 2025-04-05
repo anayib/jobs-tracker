@@ -4,15 +4,10 @@ import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { TaskCard } from "./TaskCard"
 import { Assignee } from "@/types/assignee"
+import { Task } from "@/types"
 
 interface DraggableTaskCardProps {
-  task: {
-    id: string
-    title: string
-    description: string
-    assignee?: Assignee
-    dueDate?: Date
-  }
+  task: Task
   onClick: () => void
   onAssigneeChange: (assigneeName: string) => void
   availableAssignees: Assignee[]
@@ -36,7 +31,6 @@ export function DraggableTaskCard({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : undefined,
   }
 
   return (
@@ -45,16 +39,16 @@ export function DraggableTaskCard({
       style={style}
       {...attributes}
       {...listeners}
-      onClick={onClick}
-      className="cursor-grab active:cursor-grabbing touch-none"
+      className={`cursor-grab active:cursor-grabbing touch-none ${
+        isDragging ? 'opacity-50' : ''
+      }`}
+      onClick={() => !isDragging && onClick()}
     >
       <TaskCard
-        title={task.title}
-        description={task.description}
-        assignee={task.assignee}
-        dueDate={task.dueDate}
+        task={task}
         onAssigneeChange={onAssigneeChange}
         availableAssignees={availableAssignees}
+        onClick={onClick}
       />
     </div>
   )
