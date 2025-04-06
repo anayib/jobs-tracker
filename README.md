@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jobs Tracker
 
-## Getting Started
+Project to track job applications. This is an under development project to help students practice their skills with Next.js, Tailwind CSS, Shadcn UI, Drizzle ORM, Node.js, PostgreSQL, Zod, NextJs, cursor, and github actions.
 
-First, run the development server:
+## Tech Stack
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Next.js
+- Tailwind CSS
+- Shadcn UI
+- Drizzle ORM
+- Node.js
+- PostgreSQL
+- Zod
+- NextJs 
+
+## Contributing
+
+The workflow for contributing to this project is the following:
+
+**1. Create Database locally**
+
+- Configur a Docker Container with PostgreSQL
+- Run the container
+- Create a new database with the name `jobs_tracker` with Dizzle scripts. Check the scrips in package.json `db:generate` and `db:push`, and run db:studio to see the database ui schema if desired.
+- Update the `.env` file with the correct database credentials
+
+**2. Create a branch**
+
+```
+$ git checkout master
+$ git pull
+$ git checkout -b xx-short-description
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The name of the branch should start with the number of the issue, followed by max three keywords that describe the issue (e.g. `23-fix-homepage`, `56-change-font`, etc.).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**3. Work on the branch**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Commit often and try to create small commits, just be sure that the tests are passing before commiting. Rebase against the upstream frequently to prevent your branch from diverging significantly:
 
-## Learn More
+```
+$ git fetch origin
+$ git rebase origin/master
+```
 
-To learn more about Next.js, take a look at the following resources:
+Once you finish, you can push the branch and initiate a pull request.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**Note:** remember that an issue is not finished until it's fully tested!
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**4. Push the branch and initiate the pull request**
 
-## Deploy on Vercel
+When you are done, and you have organized your commits locally, it's time to push the branch.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+$ git push -u origin xx-short-description
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open a pull request (PR) on Github.
+
+### Writing good commit messages
+
+A commit message has a first line, a blank line and an optional body. For example (taken from the Rails repository). 
+
+Also start with:
+- fix if you are fixing a bug
+- feat if you are adding a new feature
+- refactor if you are refactoring code
+- chore if you are updating the build process or deps
+
+```
+Feat flash messages cookie compatible with React
+
+In #xxx we removed the discard key from the session hash used to flash
+messages and that broke compatibility with React applications because they
+try to map in the discarded flash messages and it returns nil.
+
+Close  issue #xxx.
+```
