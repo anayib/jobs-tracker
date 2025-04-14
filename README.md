@@ -13,66 +13,68 @@ Project to track job applications. This is an under development project to help 
 - Zod
 - NextJs 
 
+
 ## Contributing
 
-The workflow for contributing to this project is the following:
+1. Fork the repository
+2. Create a new branch
+3. Make your changes and commit them
+4. Push your changes to your fork
+5. Create a pull request
 
-**1. Create Database locally**
 
-- Configur a Docker Container with PostgreSQL
-- Run the container
-- Create a new database with the name `jobs_tracker` with Dizzle scripts. Check the scrips in package.json `db:generate` and `db:push`, and run db:studio to see the database ui schema if desired.
-- Update the `.env` file with the correct database credentials
+### Commit Messages
 
-**2. Create a branch**
+We use Conventional Commits to format our commit messages.
 
-```
-$ git checkout master
-$ git pull
-$ git checkout -b xx-short-description
-```
+| Prefix       | Description                                                                 |
+|--------------|-----------------------------------------------------------------------------|
+| `feat`       | A new feature (triggers a **minor** version bump in SemVer).                |
+| `fix`        | A bug fix (triggers a **patch** version bump in SemVer).                    |
+| `docs`       | Documentation changes (README, comments, etc.).                             |
+| `style`      | Code style changes (formatting, linting, no functional changes).            |
+| `refactor`   | Code restructuring (no new features or bug fixes).                          |
+| `perf`       | Performance improvements.                                                   |
+| `test`       | Adding or modifying tests.                                                  |
+| `chore`      | Maintenance tasks (build config, dependencies, CI/CD).                      |
+| `revert`     | Reverting a previous commit.                                                |
+| `ci`         | Changes to CI/CD pipelines.                                                 |
+| `build`      | Changes affecting the build system or dependencies.                         |
 
-The name of the branch should start with the number of the issue, followed by max three keywords that describe the issue (e.g. `23-fix-homepage`, `56-change-font`, etc.).
+---
 
-**3. Work on the branch**
-
-Commit often and try to create small commits, just be sure that the tests are passing before commiting. Rebase against the upstream frequently to prevent your branch from diverging significantly:
-
-```
-$ git fetch origin
-$ git rebase origin/master
-```
-
-Once you finish, you can push the branch and initiate a pull request.
-
-**Note:** remember that an issue is not finished until it's fully tested!
-
-**4. Push the branch and initiate the pull request**
-
-When you are done, and you have organized your commits locally, it's time to push the branch.
+### Format of a Conventional Commit
 
 ```
-$ git push -u origin xx-short-description
+<type>(<scope>): <description>
+[optional body]
+[optional footer]
 ```
 
-Open a pull request (PR) on Github.
-
-### Writing good commit messages
-
-A commit message has a first line, a blank line and an optional body. For example (taken from the Rails repository). 
-
-Also start with:
-- fix if you are fixing a bug
-- feat if you are adding a new feature
-- refactor if you are refactoring code
-- chore if you are updating the build process or deps
-
+```bash
+**`<type>`**: The kind of change (`feat`, `fix`, `docs`, etc.).
+**`<scope>`** (optional): The part of the codebase affected (e.g., `auth`, `api`, `ui`).
+**`<description>`**: A concise summary of changes (imperative tense: "add" instead of "added").
+**Body** (optional): Detailed explanation if needed.
+**Footer** (optional): References like `BREAKING CHANGE:` or issue links (`Closes #123`).
 ```
-Feat flash messages cookie compatible with React
 
-In #xxx we removed the discard key from the session hash used to flash
-messages and that broke compatibility with React applications because they
-try to map in the discarded flash messages and it returns nil.
+---
 
-Close  issue #xxx.
+### Examples
+
+#### 1. Simple Feature Addition
+```bash
+git commit -m "feat(auth): add OAuth2 login support"
 ```
+
+#### 2. Bug Fix with Issue Reference
+```bash
+git commit -m "fix(api): handle null response in user endpoint
+
+Closes #456"
+```
+#### 3. Breaking Change (Major Version Bump)
+```bash
+
+git commit -m "feat(db): migrate to PostgreSQL
